@@ -1,18 +1,44 @@
-
 import streamlit as st
 import pandas as pd
 import json
 import pydeck as pdk
-from datetime import datetime
+from datetime import datetime, timedelta
 from geopy.geocoders import Nominatim
 from google import genai
 
-# הגדרת ממשק האתר מימין לשמאל (RTL) ובעברית
+# הגדרת ממשק האתר ופריסה רחבה
 st.set_page_config(page_title="מתכנן מסלולים חכם", layout="wide")
 
+# הזרקת קוד עיצוב (CSS) להפיכת האתר ל-RTL והוספת תמונת רקע
+st.markdown(
+    """
+    <style>
+    .stApp {
+        direction: rtl;
+        text-align: right;
+        background-image: linear-gradient(rgba(255, 255, 255, 0.85), rgba(255, 255, 255, 0.85)), 
+                          url('https://unsplash.com');
+        background-size: cover;
+        background-position: center;
+        background-attachment: fixed;
+    }
+    input, select, textarea, div {
+        direction: rtl !important;
+        text-align: right !important;
+    }
+    .stButton>button {
+        width: 100%;
+        background-color: #1e7e34 !important;
+        color: white !important;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
+
 # כותרת האתר
-st.title("✈️ מתכנן מסלולים חכם: טיסות, רכבים וכרטיסים לספורט")
-st.write("הקלד מוצא ויעד לחישוב זמנים, השכרת רכב ורכישת כרטיסי כדורגל אמיתיים לפי תקציב!")
+st.title("⚽ מתכנן מסלולים חכם: טיסות, רכבים וכרטיסים לספורט")
+st.write("הקלד מוצא ויעד לחישוב זמנים, השכרת רכב ורכישת כרטיסי כדורגל אמיתיים לפי תקציב ותאריכים מדויקים!")
 
 # משיכת המפתח הסודי מהגדרות השרת
 api_key = st.secrets["GEMINI_API_KEY"]
@@ -21,12 +47,12 @@ geolocator = Nominatim(user_agent="my_comprehensive_travel_itinerary_2026", time
 
 @st.cache_data
 def analyze_comprehensive_travel(input_a, input_b, start_date, end_date, max_price):
-    """פנייה מאוחדת ל-AI לשליפת כל הנתונים, כולל סינון משחקים וקישורי רכישה אמיתיים לפי מחיר מקסימום"""
+    """פנייה מאוחדת ל-AI לשליפת כל הנתונים, כולל שמות שדות תעופה באנגלית עם תרגום לעברית בסוגריים"""
     prompt = f"""
     Analyze a trip from '{input_a}' to '{input_b}'. Based on current live data for 2026, provide the following details:
     1. Clean HEBREW names for both locations.
     2. Official English names for both locations (for mapping).
-    3. The closest major international airport for each.
+    3. The closest major international airport for each location, formatted EXACTLY like this: 'Official English Name (Hebrew Translation in Parentheses)'.
     4. Estimated driving time from each location to its respective airport.
     5. Estimated direct flight time between these airports.
     6. A sample list of standard flight schedules/options (frequencies, airlines) for direct flights explained in HEBREW.
@@ -42,8 +68,8 @@ def analyze_comprehensive_travel(input_a, input_b, start_date, end_date, max_pri
         "name_b_hebrew": "שם יעד בעברית",
         "name_a_en": "City A",
         "name_b_en": "City B",
-        "airport_a": "Airport Name A",
-        "airport_b": "Airport Name B",
+        "airport_a": "Ben Gurion Airport (נמל התעופה בן גוריון)",
+        "airport_b": "Heathrow Airport (נמל התעופה הית'רו)",
         "drive_to_airport_a": "שעה ו-15 דקות",
         "drive_to_airport_b": "45 דקות",
         "flight_time_direct": "4 שעות ו-30 דקות",
@@ -71,22 +97,22 @@ with col_input1:
 with col_input2:
     קלט_ב = st.text_input("📍 נקודת יעד:", placeholder="למשל: לונדון")
 
-# שורת חיפוש לטווח תאריכים ומד תקציב
-col_date, col_price = st.columns(2)
-with col_date:
-    st.subheader("📅 טווח תאריכים לחופשה:")
-    טווח_תאריכים = st.date_input("בחר תאריך התחלה וסיום:", [datetime.now(), datetime.now()])
+# פיצול התאריכים לשתי תיבות נפרדות ומד תקציב
+col_start, col_end, col_price = st.columns(3)
+with col_start:
+    st.subheader("📅 תאריך יציאה לדרך:")
+    תאריך_יציאה_קלט = st.date_input("בחר תאריך טיסה הלוך:", datetime.now())
+with col_end:
+    st.subheader("📅 תאריך חזרה:")
+    תאריך_חזרה_קלט = st.date_input("בחר תאריך טיסה חזור:", datetime.now() + timedelta(days=7))
 with col_price:
-    st.subheader("💰 תקציב מקסימלי לכרטיס משחק:")
+    st.subheader("💰 תקציב מקסימלי לכרטיס:")
     מחיר_מקסימום = st.slider("בחר מחיר מקסימלי (בדולר $):", min_value=20, max_value=500, value=150, step=10)
 
 if st.button("חשב מסלול וחפש כרטיסים") or (קלט_א and קלט_ב):
-    if len(טווח_תאריכים) == 2:
-        תאריך_התחלה = טווח_תאריכים[0].strftime('%Y-%m-%d')
-        תאריך_סיום = טווח_תאריכים[1].strftime('%Y-%m-%d')
-    else:
-        תאריך_התחלה = datetime.now().strftime('%Y-%m-%d')
-        תאריך_סיום = datetime.now().strftime('%Y-%m-%d')
+    # המרת התאריכים לטקסט שה-AI והמערכת מבינים
+    תאריך_התחלה = תאריך_יציאה_קלט.strftime('%Y-%m-%d')
+    תאריך_סיום = תאריך_חזרה_קלט.strftime('%Y-%m-%d')
 
     with st.spinner("🤖 ה-AI סורק אתרי כרטיסים ומחשב מחירים..."):
         try:
@@ -109,7 +135,7 @@ if st.button("חשב מסלול וחפש כרטיסים") or (קלט_א and קל
             timeline_data = {
                 "שלב במסלול": [
                     f"🚗 נסיעה מ-{data['name_a_hebrew']} אל {data['airport_a']}",
-                    f"✈️ טיסה ישירה מ-{data['airport_a']} אל {data['airport_b']}",
+                    f"✈️ טיסה ישירה בין שדות התעופה",
                     f"🚗 נסיעה מ-{data['airport_b']} אל {data['name_b_hebrew']}"
                 ],
                 "זמן משוער": [
@@ -131,16 +157,13 @@ if st.button("חשב מסלול וחפש כרטיסים") or (קלט_א and קל
             st.write(f"סוכנויות זמינות: **{car_list}**")
 
             # 6. טבלת כדורגל מתקדמת עם סינון מחיר וקישורי רכישה
-            st.subheader(f"⚽ משחקי כדורגל עד ${מחיר_מקסימום} בטווח התאריכים וברדיוס 100 ק\"מ:")
+            st.subheader(f"⚽ משחקי כדורגל עד ${מחיר_מקסימום} בין ה-{תאריך_התחלה} ל-{תאריך_סיום}:")
             matches = data.get("football_matches_hebrew", [])
-            
-            # סינון סופי נוסף בקוד למקרה שה-AI פספס
             filtered_matches = [m for m in matches if m.get("price", 0) <= מחיר_מקסימום]
             
             if filtered_matches:
-                # הצגת המשחקים כולל כפתור רכישה ייעודי לכל משחק!
                 for idx, m in enumerate(filtered_matches):
-                    col_m1, col_m2, col_m3 = st.columns([3, 1, 1])
+                    col_m1, col_m2, col_m3 = st.columns(3)
                     with col_m1:
                         st.write(f"⚽ **{m['club_or_match']}** — 🏟️ אצטדיון: {m['stadium']}")
                     with col_m2:
@@ -148,7 +171,7 @@ if st.button("חשב מסלול וחפש כרטיסים") or (קלט_א and קל
                     with col_m3:
                         st.markdown(f"[🔗 רכישת כרטיסים]({m['ticket_url']})")
                 
-                # מפת אצטדיונים
+                # mפת אצטדיונים
                 st.write("🗺️ מיקומי האצטדיונים והמשחקים באזור היעד:")
                 st.map(pd.DataFrame({
                     'latitude': [m["lat"] for m in filtered_matches],
