@@ -30,8 +30,8 @@ def analyze_places_with_ai(input_a, input_b):
         "img_b": "URL"
     }}
     """
-    # שינינו את המודל ל-gemini-2.5-flash כדי לקבל מכסה ענקית בחינם
-    response = client.models.generate_content(model='gemini-2.5-flash', contents=prompt)
+    # עדכון למודל העדכני ביותר
+    response = client.models.generate_content(model='gemini-3.6-flash', contents=prompt)
     return json.loads(response.text.strip())
 
 # תיבות קלט
@@ -47,10 +47,10 @@ if st.button("חשב מרחק") or (קלט_א and קלט_ב):
             res_b = ai_data["name_b"]
             
             # 2. מיקום גיאוגרפי
-            מיקום_א = geolocator.geocode(res_a)
+            mi_location_a = geolocator.geocode(res_a)
             מיקום_ב = geolocator.geocode(res_b)
 
-            if מיקום_א and מיקום_ב:
+            if mi_location_a and מיקום_ב:
                 # 3. הצגת תמונות זה לצד זה
                 col1, col2 = st.columns(2)
                 with col1:
@@ -63,14 +63,14 @@ if st.button("חשב מרחק") or (קלט_א and קלט_ב):
                         st.image(ai_data["img_b"], use_container_width=True)
 
                 # 4. חישוב מרחק
-                מרחק = geodesic((מיקום_א.latitude, מיקום_א.longitude), 
+                מרחק = geodesic((mi_location_a.latitude, mi_location_a.longitude), 
                                 (מיקום_ב.latitude, מיקום_ב.longitude)).kilometers
                 st.success(f"📏 המרחק האווירי הוא {מרחק:.2f} קילומטרים.")
 
                 # 5. מפה
                 מפה_דאטה = pd.DataFrame({
-                    'latitude': [מיקום_א.latitude, מיקום_ב.latitude],
-                    'longitude': [מיקום_א.longitude, מיקום_ב.longitude]
+                    'latitude': [mi_location_a.latitude, מיקום_ב.latitude],
+                    'longitude': [mi_location_a.longitude, מיקום_ב.longitude]
                 })
                 st.map(מפה_דאטה)
             else:
