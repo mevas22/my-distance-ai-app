@@ -1,3 +1,4 @@
+
 import streamlit as st
 import pandas as pd
 import json
@@ -189,7 +190,7 @@ if st.button("בצע ניתוח מסלול") or (קלט_א and קלט_ב):
             st.write(f"סוכנויות זמינות בטרמינל: **{car_list}**")
 
             # 6. רשימת משחקים מלאה כולל ליגות אירופיות בטבלה מימין לשמאל
-            st.subheader(f"⚽ אירועי ספורט ומפעלים אירופיים באזור (עד ${מחיר_מקסימום}):")
+            st.subheader("⚽ אירועי ספורט ומפעלים אירופיים באזור:")
             matches = data.get("football_matches_hebrew", [])
             filtered_matches = [m for m in matches if m.get("price", 0) <= מחיר_מקסימום]
             
@@ -205,8 +206,7 @@ if st.button("בצע ניתוח מסלול") or (קלט_א and קלט_ב):
                 st.table(pd.DataFrame(matches_df_list))
 
                 st.write("🎟️ **ערוצי רכישת כרטיסים רשמיים:**")
-                for m in filtered_matches: 
-                    st.markdown(f"• **{m['club_or_match']}** ({m.get('date', '')}) — [לחץ למעבר לאתר הרכישה]({m['ticket_url']})")
+                for m in filtered_matches: st.markdown(f"• **{m['club_or_match']}** ({m.get('date', '')}) — [לחץ למעבר לאתר הרכישה]({m['ticket_url']})")
                 
                 # מפת אצטדיונים
                 st.write("🗺️ מיקומי האצטדיונים באזור היעד:")
@@ -215,8 +215,9 @@ if st.button("בצע ניתוח מסלול") or (קלט_א and קלט_ב):
                     'longitude': [m["lon"] for m in filtered_matches]
                 }))
             else:
-                st.info(f"לא נמצאו משחקים או מפעלים אירופיים בטווח המחירים והתאריכים המבוקשים.")
+                st.info("לא נמצאו משחקים או מפעלים אירופיים בטווח המחירים והתאריכים המבוקשים.")
 
-            # 7. הצגת מסלולים חלופיים (הוצא מחוץ לבלוק ה-if, חסין לחלוטין משגיאות הזחה!)
+            # 7. הצגת מסלולים חלופיים בטבלה רשמית (חסין לחלוטין משגיאות רווחים!)
             st.subheader("🔄 חלופות מסלול מוצעות:")
-            for alt in data.get("alternatives", []):
+            alts = data.get("alternatives", [])
+            if alts:
