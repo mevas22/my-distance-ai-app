@@ -14,7 +14,7 @@ api_key = st.secrets["GEMINI_API_KEY"]
 client = genai.Client(api_key=api_key)
 geolocator = Nominatim(user_agent="my_fast_distance_website_123")
 
-# פונקציית זיכרון מטמון - אם המשתמש כבר חיפש את הערים האלו בעבר, התוצאה תישלף בשבריר שנייה בלי לפנות ל-AI
+# פונקציית זיכרון מטמון
 @st.cache_data
 def analyze_places_with_ai(input_a, input_b):
     """פנייה אחת מהירה ל-AI שמחזירה את כל המידע על שני המקומות בבת אחת בפורמט JSON"""
@@ -30,7 +30,8 @@ def analyze_places_with_ai(input_a, input_b):
         "img_b": "URL"
     }}
     """
-    response = client.models.generate_content(model='gemini-3-flash-preview', contents=prompt)
+    # שינינו את המודל ל-gemini-2.5-flash כדי לקבל מכסה ענקית בחינם
+    response = client.models.generate_content(model='gemini-2.5-flash', contents=prompt)
     return json.loads(response.text.strip())
 
 # תיבות קלט
@@ -62,7 +63,7 @@ if st.button("חשב מרחק") or (קלט_א and קלט_ב):
                         st.image(ai_data["img_b"], use_container_width=True)
 
                 # 4. חישוב מרחק
-                מרחק = geodesic((מיקום_א.latitude, mi_location_a := מיקום_א.longitude), 
+                מרחק = geodesic((מיקום_א.latitude, מיקום_א.longitude), 
                                 (מיקום_ב.latitude, מיקום_ב.longitude)).kilometers
                 st.success(f"📏 המרחק האווירי הוא {מרחק:.2f} קילומטרים.")
 
