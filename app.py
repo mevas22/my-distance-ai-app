@@ -202,12 +202,11 @@ if st.button("בצע ניתוח מסלול") or (קלט_א and קלט_ב):
                         "אצטדיון": m["stadium"],
                         "מחיר התחלתי": f"${m['price']}"
                     })
-                # הצגת הטבלה בכיווניות ימין לשמאל
                 st.table(pd.DataFrame(matches_df_list))
 
-                # הצגת קישורי רכישה (שודרג למבנה בטוח ללא הזחות ארוכות)
                 st.write("🎟️ **ערוצי רכישת כרטיסים רשמיים:**")
-                for m in filtered_matches: st.markdown(f"• **{m['club_or_match']}** ({m.get('date', '')}) — [לחץ למעבר לאתר הרכישה]({m['ticket_url']})")
+                for m in filtered_matches: 
+                    st.markdown(f"• **{m['club_or_match']}** ({m.get('date', '')}) — [לחץ למעבר לאתר הרכישה]({m['ticket_url']})")
                 
                 # מפת אצטדיונים
                 st.write("🗺️ מיקומי האצטדיונים באזור היעד:")
@@ -218,6 +217,6 @@ if st.button("בצע ניתוח מסלול") or (קלט_א and קלט_ב):
             else:
                 st.info(f"לא נמצאו משחקים או מפעלים אירופיים בטווח המחירים והתאריכים המבוקשים.")
 
-            # 7. הצגת מסלולים חלופיים
+            # 7. הצגת מסלולים חלופיים (הוצא מחוץ לבלוק ה-if, חסין לחלוטין משגיאות הזחה!)
             st.subheader("🔄 חלופות מסלול מוצעות:")
-            for alt in data["alternatives"]:
+            for alt in data.get("alternatives", []):
