@@ -1,4 +1,3 @@
-
 import streamlit as st
 import pandas as pd
 import json
@@ -217,7 +216,7 @@ if st.button("בצע ניתוח מסלול") or (קלט_א and קלט_ב):
             else:
                 st.info("לא נמצאו משחקים או מפעלים אירופיים בטווח המחירים והתאריכים המבוקשים.")
 
-            # 7. הצגת מסלולים חלופיים בטבלה רשמית (חסין לחלוטין משגיאות רווחים!)
+            # 7. הצגת מסלולים חלופיים בטבלה רשמית (שונה לשורה אחת קבועה וחסינה לחלוטין)
             st.subheader("🔄 חלופות מסלול מוצעות:")
-            alts = data.get("alternatives", [])
-            if alts:
+            st.table(pd.DataFrame([{"סוג מסלול": a.get("type", ""), "פרטים": a.get("details", ""), "משך זמן כולל": a.get("duration", "")} for a in data.get("alternatives", [])]))
+
