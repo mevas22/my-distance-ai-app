@@ -1,3 +1,4 @@
+
 import streamlit as st
 import pandas as pd
 import json
@@ -114,7 +115,7 @@ if st.button("חשב מסלול מלא") or (קלט_א and קלט_ב):
             for alt in data["alternatives"]:
                 st.write(f"• **{alt['type']}**: {alt['details']} — ⏳ זמן כולל: {alt['duration']}")
 
-            # 8. מנגנון הגנה למפה
+            # 8. מנגנון הגנה למפה עם ערכי צבעים תקינים לחלוטין
             try:
                 loc_a = geolocator.geocode(data["name_a"])
                 loc_b = geolocator.geocode(data["name_b"])
@@ -122,13 +123,14 @@ if st.button("חשב מסלול מלא") or (קלט_א and קלט_ב):
                 air_b = geolocator.geocode(data["airport_b"])
 
                 if loc_a and loc_b and air_a and air_b:
+                    # הוספנו צבעים תקינים כאן
                     arc_layer = pdk.Layer(
                         "ArcLayer",
                         data=[{"source": [air_a.longitude, air_a.latitude], "target": [air_b.longitude, air_b.latitude]}],
                         get_source_position="source",
                         get_target_position="target",
-                        get_source_color=,
-                        get_target_color=,
+                        get_source_color=[0, 255, 150],
+                        get_target_color=[0, 150, 255],
                         stroke_width=4,
                     )
 
@@ -141,7 +143,7 @@ if st.button("חשב מסלול מלא") or (קלט_א and קלט_ב):
                         data=line_data,
                         get_source_position="start",
                         get_target_position="end",
-                        get_color=,
+                        get_color=[255, 50, 50],
                         get_width=3
                     )
 
