@@ -1,3 +1,4 @@
+
 import streamlit as st
 import pandas as pd
 import json
@@ -37,8 +38,8 @@ st.markdown(
 )
 
 # כותרת האתר
-st.title("⚽ מתכנן מסלולים חכם: טיסות, רכבים וכרטיסים לספורט")
-st.write("הקלד מוצא ויעד לחישוב זמנים, השכרת רכב ורכישת כרטיסי כדורגל אמיתיים לפי תקציב ותאריכים מדויקים!")
+st.title("⚽ מתכנן מסלולים חכם: טיסות, רכבים וכל משחקי הספורט ביעד")
+st.write("הקלד מוצא ויעד לחישוב זמנים, השכרת רכב וסריקה מלאה של כל משחקי הכדורגל לאורך כל תקופת השהות!")
 
 # משיכת המפתח הסודי מהגדרות השרת
 api_key = st.secrets["GEMINI_API_KEY"]
@@ -47,7 +48,7 @@ geolocator = Nominatim(user_agent="my_comprehensive_travel_itinerary_2026", time
 
 @st.cache_data
 def analyze_comprehensive_travel(input_a, input_b, start_date, end_date, max_price):
-    """פנייה מאוחדת ל-AI לשליפת כל הנתונים, כולל שמות שדות תעופה באנגלית עם תרגום לעברית בסוגריים"""
+    """פנייה מאוחדת ל-AI לסריקה מקיפה של כל המשחקים באזור לאורך כל ימי השהות המבוקשים"""
     prompt = f"""
     Analyze a trip from '{input_a}' to '{input_b}'. Based on current live data for 2026, provide the following details:
     1. Clean HEBREW names for both locations.
@@ -57,8 +58,8 @@ def analyze_comprehensive_travel(input_a, input_b, start_date, end_date, max_pri
     5. Estimated direct flight time between these airports.
     6. A sample list of standard flight schedules/options (frequencies, airlines) for direct flights explained in HEBREW.
     7. A list of major car rental agencies located directly at or near Airport B.
-    8. A list of major football matches or top clubs hosting matches within a 100km radius of the destination area (Target B) strictly between the dates {start_date} and {end_date}, where ticket prices start BELOW {max_price} USD. 
-       For each match/club, provide: the club/match name in Hebrew, the stadium name in Hebrew, the approximate minimum ticket price in USD, a specific approximate latitude and longitude, and a REAL valid public ticketing search URL (e.g., StubHub, Ticketmaster, or Viagogo search link for that match).
+    8. A COMPREHENSIVE and exhaustive list of ALL major football matches or sports events scheduled within a 100km radius of the destination area (Target B) during the entire duration from {start_date} to {end_date}, where ticket prices start BELOW {max_price} USD. Include as many matches as possible for these dates.
+       For each match, provide: the date of the match, the club/match name in Hebrew, the stadium name in Hebrew, the approximate minimum ticket price in USD, specific approximate latitude and longitude, and a REAL valid public ticketing search URL (e.g., StubHub, Ticketmaster, or Viagogo search link for that match).
     9. Alternative routes explained in Hebrew.
     10. Public Unsplash image URLs for both locations.
 
@@ -78,7 +79,7 @@ def analyze_comprehensive_travel(input_a, input_b, start_date, end_date, max_pri
         ],
         "car_rentals_target_b": ["Avis", "Hertz"],
         "football_matches_hebrew": [
-            {{"club_or_match": "ברצלונה נגד ריאל מדריד", "stadium": "קאמפ נואו", "price": 120, "lat": 41.3809, "lon": 2.1228, "ticket_url": "https://stubhub.com"}}
+            {{"date": "2026-08-15", "club_or_match": "ברצלונה נגד ריאל מדריד", "stadium": "קאמפ נואו", "price": 120, "lat": 41.3809, "lon": 2.1228, "ticket_url": "https://stubhub.com"}}
         ],
         "img_a": "URL",
         "img_b": "URL",
@@ -110,11 +111,10 @@ with col_price:
     מחיר_מקסימום = st.slider("בחר מחיר מקסימלי (בדולר $):", min_value=20, max_value=500, value=150, step=10)
 
 if st.button("חשב מסלול וחפש כרטיסים") or (קלט_א and קלט_ב):
-    # המרת התאריכים לטקסט שה-AI והמערכת מבינים
     תאריך_התחלה = תאריך_יציאה_קלט.strftime('%Y-%m-%d')
     תאריך_סיום = תאריך_חזרה_קלט.strftime('%Y-%m-%d')
 
-    with st.spinner("🤖 ה-AI סורק אתרי כרטיסים ומחשב מחירים..."):
+    with st.spinner("🤖 ה-AI סורק את כל לוחות המשחקים לימי השהות שלכם..."):
         try:
             # 1. שליפת נתונים מה-AI
             data = analyze_comprehensive_travel(קלט_א, קלט_ב, תאריך_התחלה, תאריך_סיום, מחיר_מקסימום)
@@ -156,29 +156,36 @@ if st.button("חשב מסלול וחפש כרטיסים") or (קלט_א and קל
             car_list = ", ".join(data.get("car_rentals_target_b", []))
             st.write(f"סוכנויות זמינות: **{car_list}**")
 
-            # 6. טבלת כדורגל מתקדמת עם סינון מחיר וקישורי רכישה
-            st.subheader(f"⚽ משחקי כדורגל עד ${מחיר_מקסימום} בין ה-{תאריך_התחלה} ל-{תאריך_סיום}:")
+            # 6. רשימת משחקים מלאה ומורחבת לכל ימי השהות
+            st.subheader(f"⚽ כל המשחקים באזור בין ה-{תאריך_התחלה} ל-{תאריך_סיום} (עד ${מחיר_מקסימום}):")
             matches = data.get("football_matches_hebrew", [])
             filtered_matches = [m for m in matches if m.get("price", 0) <= מחיר_מקסימום]
             
             if filtered_matches:
-                for idx, m in enumerate(filtered_matches):
-                    col_m1, col_m2, col_m3 = st.columns(3)
-                    with col_m1:
-                        st.write(f"⚽ **{m['club_or_match']}** — 🏟️ אצטדיון: {m['stadium']}")
-                    with col_m2:
-                        st.write(f"💰 מחיר החל מ: **${m['price']}**")
-                    with col_m3:
-                        st.markdown(f"[🔗 רכישת כרטיסים]({m['ticket_url']})")
+                # הצגת המשחקים בפורמט טבלה נקייה הכוללת את תאריך המשחק
+                matches_df_list = []
+                for m in filtered_matches:
+                    matches_df_list.append({
+                        "תאריך": m.get("date", "לא צוין"),
+                        "משחק / אירוע": m["club_or_match"],
+                        "אצטדיון": m["stadium"],
+                        "מחיר התחלתי": f"${m['price']}"
+                    })
+                st.table(pd.DataFrame(matches_df_list))
+
+                # הצגת כפתורי רכישה נוחים מתחת לטבלה
+                st.write("🎟️ **קישורים ישירים לבדיקת זמינות ורכישת כרטיסים:**")
+                for m in filtered_matches:
+                    st.markdown(f"• לכרטיסים עבור **{m['club_or_match']}** ({m.get('date', '')}) — [לחץ כאן לרכישה]({m['ticket_url']})")
                 
-                # mפת אצטדיונים
-                st.write("🗺️ מיקומי האצטדיונים והמשחקים באזור היעד:")
+                # מפת אצטדיונים
+                st.write("🗺️ מיקומי האצטדיונים הפעילים ביעד לאורך השהות שלכם:")
                 st.map(pd.DataFrame({
                     'latitude': [m["lat"] for m in filtered_matches],
                     'longitude': [m["lon"] for m in filtered_matches]
                 }))
             else:
-                st.info(f"לא נמצאו משחקי כדורגל גדולים עם כרטיסים מתחת ל-${מחיר_מקסימום} בטווח התאריכים המבוקש.")
+                st.info(f"לא נמצאו משחקי ספורט שתואמים את התאריכים או את מסגרת התקציב שלכם.")
 
             # 7. הצגת מסלולים חלופיים
             st.subheader("🔄 מסלולים חלופיים שהתגלו:")
