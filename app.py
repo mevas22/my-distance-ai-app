@@ -72,7 +72,7 @@ st.markdown(
 st.title("מערכת ניתוח מסלולים ואירועי ספורט בינלאומיים")
 st.write("הזן נקודת מוצא ויעד לקבלת זמני נסיעה, תדירות טיסות וסריקת משחקי כדורגל מקומיים ואירופיים.")
 
-# mשיכת המפתח הסודי מהגדרות השרת
+# משיכת המפתח הסודי מהגדרות השרת
 api_key = st.secrets["GEMINI_API_KEY"]
 client = genai.Client(api_key=api_key)
 geolocator = Nominatim(user_agent="my_comprehensive_travel_itinerary_2026", timeout=10)
@@ -145,7 +145,7 @@ if st.button("בצע ניתוח מסלול") or (קלט_א and קלט_ב):
     תאריך_התחלה = תאריך_יציאה_קלט.strftime('%Y-%m-%d')
     תאריך_סיום = תאריך_חזרה_קלט.strftime('%Y-%m-%d')
 
-    # הודעת טעינה קצרה ומקצועית בלבד כפי שביקשת
+    # הודעת טעינה קצרה ומקצועית בלבד
     with st.spinner("מחפש..."):
         try:
             # 1. שליפת נתונים מה-AI
@@ -205,7 +205,7 @@ if st.button("בצע ניתוח מסלול") or (קלט_א and קלט_ב):
                 # הצגת הטבלה בכיווניות ימין לשמאל
                 st.table(pd.DataFrame(matches_df_list))
 
-                # הצגת קישורי רכישה
+                # הצגת קישורי רכישה (תוקן הרווח וההזחה של הלולאה כאן!)
                 st.write("🎟️ **ערוצי רכישת כרטיסים רשמיים:**")
                 for m in filtered_matches:
                     st.markdown(f"• **{m['club_or_match']}** ({m.get('date', '')}) — [לחץ למעבר לאתר הרכישה]({m['ticket_url']})")
@@ -222,4 +222,5 @@ if st.button("בצע ניתוח מסלול") or (קלט_א and קלט_ב):
             # 7. הצגת מסלולים חלופיים
             st.subheader("🔄 חלופות מסלול מוצעות:")
             for alt in data["alternatives"]:
+
 
