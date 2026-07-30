@@ -1,4 +1,3 @@
-%%writefile app.py
 import streamlit as st
 from geopy.geocoders import Nominatim
 from geopy.distance import geodesic
