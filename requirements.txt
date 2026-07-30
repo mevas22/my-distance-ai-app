@@ -1,3 +1,4 @@
 streamlit
 geopy
 google-genai
+pandas
