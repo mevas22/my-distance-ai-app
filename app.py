@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 import json
 import pydeck as pdk
-from datetime import datetime, timedelta
+from datetime import datetime
 from geopy.geocoders import Nominatim
 from google import genai
 
@@ -78,19 +78,19 @@ client = genai.Client(api_key=api_key)
 geolocator = Nominatim(user_agent="my_comprehensive_travel_itinerary_2026", timeout=10)
 
 @st.cache_data
-def analyze_comprehensive_travel(input_a, input_b, start_date, end_date, max_price):
-    """פנייה מאוחדת ל-AI לסריקת כל המשחקים, כולל ליגות מקומיות ומפעלים אירופיים"""
+def analyze_comprehensive_travel(input_a, input_b, start_date, end_date):
+    """פנייה מאוחדת ל-AI לשליפת כל הנתונים בעברית מלאה כולל סינון משחקים לפי תאריכים ומיקום"""
     prompt = f"""
-    Analyze a trip from '{input_a}' to '{input_b}' for the year 2026. Provide the following details:
+    Analyze a trip from '{input_a}' to '{input_b}'. Based on current data for 2026, provide the following details:
     1. Clean HEBREW names for both locations.
     2. Official English names for both locations (for mapping).
-    3. The closest major international airport for each location, formatted EXACTLY like this: 'Official English Name (Hebrew Translation in Parentheses)'.
+    3. The closest major international airport for each, formatted like 'Official English Name (Hebrew Translation)'.
     4. Estimated driving time from each location to its respective airport.
     5. Estimated direct flight time between these airports.
-    6. A sample list of standard flight schedules/options (frequencies, airlines) explained in HEBREW.
+    6. A sample list of standard flight schedules/options (frequencies, airlines) for direct flights explained in HEBREW.
     7. A list of major car rental agencies located directly at or near Airport B.
-    8. A COMPREHENSIVE and exhaustive list of ALL major football matches (including local leagues AND European tournaments like UEFA Champions League, Europa League, Conference League) scheduled within a 100km radius of the destination area (Target B) strictly between the dates {start_date} and {end_date}, where ticket prices start BELOW {max_price} USD.
-       For each match, provide: the date of the match, the club/match name in Hebrew (including tournament type if European), the stadium name in Hebrew, the approximate minimum ticket price in USD, specific approximate latitude and longitude, and a REAL valid public ticketing search URL.
+    8. A list of major football/soccer matches (including local leagues AND European tournaments like Champions League) within a 100km radius of Target B strictly between the dates {start_date} and {end_date}. 
+       For each match/club, provide: the date, the club/match name in Hebrew, the stadium name in Hebrew, and latitude/longitude for mapping.
     9. Alternative routes explained in Hebrew.
     10. Public Unsplash image URLs for both locations.
 
@@ -110,7 +110,7 @@ def analyze_comprehensive_travel(input_a, input_b, start_date, end_date, max_pri
         ],
         "car_rentals_target_b": ["Avis", "Hertz"],
         "football_matches_hebrew": [
-            {{"date": "2026-08-15", "club_or_match": "צ'לסי נגל ריאל מדריד (ליגת האלופות)", "stadium": "סטמפורד ברידג'", "price": 140, "lat": 51.4816, "lon": -0.1910, "ticket_url": "https://stubhub.com"}}
+            {{"date": "2026-08-15", "club_or_match": "ברצלונה נגד ריאל מדריד", "stadium": "קאמפ נואו", "lat": 41.3809, "lon": 2.1228}}
         ],
         "img_a": "URL",
         "img_b": "URL",
@@ -122,34 +122,30 @@ def analyze_comprehensive_travel(input_a, input_b, start_date, end_date, max_pri
     response = client.models.generate_content(model='gemini-3.6-flash', contents=prompt)
     return json.loads(response.text.strip())
 
-# תיבות קלט ומערך הגדרות
+# תיבות קלט
 col_input1, col_input2 = st.columns(2)
 with col_input1:
     קלט_א = st.text_input("📍 נקודת מוצא:", placeholder="למשל: תל אביב")
 with col_input2:
     קלט_ב = st.text_input("📍 נקודת יעד:", placeholder="למשל: לונדון")
 
-# פיצול התאריכים לשתי תיבות נפרדות ומד תקציב
-col_start, col_end, col_price = st.columns(3)
-with col_start:
-    st.subheader("📅 תאריך יציאה:")
-    תאריך_יציאה_קלט = st.date_input("תאריך טיסה הלוך:", datetime.now())
-with col_end:
-    st.subheader("📅 תאריך חזרה:")
-    תאריך_חזרה_קלט = st.date_input("תאריך טיסה חזור:", datetime.now() + timedelta(days=7))
-with col_price:
-    st.subheader("💰 תקציב מקסימלי לכרטיס:")
-    מחיר_מקסימום = st.slider("בחר מחיר מקסימלי (USD $):", min_value=20, max_value=500, value=150, step=10)
+# שורת חיפוש לטווח תאריכים (תיבה אחת מאוחדת שעובדת בטוח)
+st.subheader("📅 בחירת טווח תאריכים לחיפוש משחקים:")
+טווח_תאריכים = st.date_input("בחר תאריך התחלה וסיום:", [datetime.now(), datetime.now()])
 
 if st.button("בצע ניתוח מסלול") or (קלט_א and קלט_ב):
-    תאריך_התחלה = תאריך_יציאה_קלט.strftime('%Y-%m-%d')
-    תאריך_סיום = תאריך_חזרה_קלט.strftime('%Y-%m-%d')
+    if len(טווח_תאריכים) == 2:
+        תאריך_התחלה = טווח_תאריכים[0].strftime('%Y-%m-%d')
+        תאריך_סיום = טווח_תאריכים[1].strftime('%Y-%m-%d')
+    else:
+        תאריך_התחלה = datetime.now().strftime('%Y-%m-%d')
+        תאריך_סיום = datetime.now().strftime('%Y-%m-%d')
 
-    # הודעת טעינה קצרה ומקצועית בלבד
+    # הודעת טעינה קצרה ומקצועית בלבד כפי שביקשת
     with st.spinner("מחפש..."):
         try:
             # 1. שליפת נתונים מה-AI
-            data = analyze_comprehensive_travel(קלט_א, קלט_ב, תאריך_התחלה, תאריך_סיום, מחיר_מקסימום)
+            data = analyze_comprehensive_travel(קלט_א, קלט_ב, תאריך_התחלה, תאריך_סיום)
             
             # 2. הצגת תמונות המקומות
             col1, col2 = st.columns(2)
@@ -189,34 +185,35 @@ if st.button("בצע ניתוח מסלול") or (קלט_א and קלט_ב):
             st.write(f"סוכנויות זמינות בטרמינל: **{car_list}**")
 
             # 6. רשימת משחקים מלאה כולל ליגות אירופיות בטבלה מימין לשמאל
-            st.subheader("⚽ אירועי ספורט ומפעלים אירופיים באזור:")
+            st.subheader(f"⚽ אירועי ספורט ומפעלים אירופיים באזור:")
             matches = data.get("football_matches_hebrew", [])
-            filtered_matches = [m for m in matches if m.get("price", 0) <= מחיר_מקסימום]
             
-            if filtered_matches:
+            if matches:
                 matches_df_list = []
-                for m in filtered_matches:
+                for m in matches:
                     matches_df_list.append({
                         "תאריך": m.get("date", "לא צוין"),
                         "משחק / מפעל אירופי": m["club_or_match"],
-                        "אצטדיון": m["stadium"],
-                        "מחיר התחלתי": f"${m['price']}"
+                        "אצטדיון": m["stadium"]
                     })
+                # הצגת הטבלה בכיווניות ימין לשמאל
                 st.table(pd.DataFrame(matches_df_list))
-
-                st.write("🎟️ **ערוצי רכישת כרטיסים רשמיים:**")
-                for m in filtered_matches: st.markdown(f"• **{m['club_or_match']}** ({m.get('date', '')}) — [לחץ למעבר לאתר הרכישה]({m['ticket_url']})")
                 
                 # מפת אצטדיונים
                 st.write("🗺️ מיקומי האצטדיונים באזור היעד:")
                 st.map(pd.DataFrame({
-                    'latitude': [m["lat"] for m in filtered_matches],
-                    'longitude': [m["lon"] for m in filtered_matches]
+                    'latitude': [m["lat"] for m in matches],
+                    'longitude': [m["lon"] for m in matches]
                 }))
             else:
-                st.info("לא נמצאו משחקים או מפעלים אירופיים בטווח המחירים והתאריכים המבוקשים.")
+                st.info(f"לא נמצאו משחקים או מפעלים אירופיים בטווח התאריכים המבוקשים.")
 
-            # 7. הצגת מסלולים חלופיים בטבלה רשמית
+            # 7. הצגת מסלולים חלופיים
             st.subheader("🔄 חלופות מסלול מוצעות:")
-            st.table(pd.DataFrame([{"סוג מסלול": a.get("type", ""), "פרטים": a.get("details", ""), "משך זמן כולל": a.get("duration", "")} for a in data.get("alternatives", [])]))
+            for alt in data["alternatives"]:
+                st.write(f"• **{alt['type']}**: {alt['details']} — ⏳ זמן כולל: {alt['duration']}")
+                
+        except Exception as e:
+            st.error(f"שגיאה בקבלת נתונים מה-AI: {e}")
+
             
