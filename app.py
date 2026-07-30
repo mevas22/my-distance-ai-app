@@ -110,7 +110,7 @@ def analyze_comprehensive_travel(input_a, input_b, start_date, end_date, max_pri
         ],
         "car_rentals_target_b": ["Avis", "Hertz"],
         "football_matches_hebrew": [
-            {{"date": "2026-08-15", "club_or_match": "צ'לסי נגד ריאל מדריד (ליגת האלופות)", "stadium": "סטמפורד ברידג'", "price": 140, "lat": 51.4816, "lon": -0.1910, "ticket_url": "https://stubhub.com"}}
+            {{"date": "2026-08-15", "club_or_match": "צ'לסי נגל ריאל מדריד (ליגת האלופות)", "stadium": "סטמפורד ברידג'", "price": 140, "lat": 51.4816, "lon": -0.1910, "ticket_url": "https://stubhub.com"}}
         ],
         "img_a": "URL",
         "img_b": "URL",
@@ -216,7 +216,7 @@ if st.button("בצע ניתוח מסלול") or (קלט_א and קלט_ב):
             else:
                 st.info("לא נמצאו משחקים או מפעלים אירופיים בטווח המחירים והתאריכים המבוקשים.")
 
-            # 7. הצגת מסלולים חלופיים בטבלה רשמית (שונה לשורה אחת קבועה וחסינה לחלוטין)
+            # 7. הצגת מסלולים חלופיים בטבלה רשמית
             st.subheader("🔄 חלופות מסלול מוצעות:")
             st.table(pd.DataFrame([{"סוג מסלול": a.get("type", ""), "פרטים": a.get("details", ""), "משך זמן כולל": a.get("duration", "")} for a in data.get("alternatives", [])]))
-
+            
