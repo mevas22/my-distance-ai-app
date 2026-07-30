@@ -1,4 +1,3 @@
-
 import streamlit as st
 import pandas as pd
 import json
@@ -8,58 +7,90 @@ from geopy.geocoders import Nominatim
 from google import genai
 
 # הגדרת ממשק האתר ופריסה רחבה
-st.set_page_config(page_title="מתכנן מסלולים חכם", layout="wide")
+st.set_page_config(page_title="מערכת תכנון מסלולים וספורט", layout="wide")
 
-# הזרקת קוד עיצוב (CSS) להפיכת האתר ל-RTL והוספת תמונת רקע
+# הזרקת קוד עיצוב (CSS) למראה בוגר, רציני, RTL מלא ותמונת רקע מגמר מונדיאל 2022
 st.markdown(
     """
     <style>
+    /* רקע האפליקציה - מונדיאל 2022 עם שכבה כהה יוקרתית */
     .stApp {
         direction: rtl;
         text-align: right;
-        background-image: linear-gradient(rgba(255, 255, 255, 0.85), rgba(255, 255, 255, 0.85)), 
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background-image: linear-gradient(rgba(17, 24, 39, 0.88), rgba(17, 24, 39, 0.88)), 
                           url('https://unsplash.com');
         background-size: cover;
         background-position: center;
         background-attachment: fixed;
+        color: #f3f4f6 !important;
     }
+    
+    /* התאמת צבעי כותרות וטקסטים למראה נקי */
+    h1, h2, h3, h4, h5, h6, p, span, label {
+        color: #ffffff !important;
+        text-align: right !important;
+    }
+    
+    /* הפיכת תיבות קלט וטבלאות ל-RTL מלא ומראה מודרני */
     input, select, textarea, div {
         direction: rtl !important;
         text-align: right !important;
     }
+    
+    /* הפיכת הטבלאות (DataFrame) למימין לשמאל */
+    .stDataFrame, table, th, td {
+        direction: rtl !important;
+        text-align: right !important;
+        color: #f3f4f6 !important;
+        background-color: rgba(31, 41, 55, 0.6) !important;
+    }
+    
+    /* עיצוב כפתור רציני וסולידי */
     .stButton>button {
         width: 100%;
-        background-color: #1e7e34 !important;
+        background-color: #0f766e !important;
         color: white !important;
+        border: none !important;
+        padding: 10px !important;
+        font-weight: bold !important;
+        border-radius: 4px !important;
+    }
+    
+    /* עיצוב אלמנטים של התראות ומידע */
+    .stAlert {
+        background-color: rgba(55, 65, 81, 0.7) !important;
+        color: #ffffff !important;
+        border: 1px solid #4b5563 !important;
     }
     </style>
     """,
     unsafe_allow_html=True
 )
 
-# כותרת האתר
-st.title("⚽ מתכנן מסלולים חכם: טיסות, רכבים וכל משחקי הספורט ביעד")
-st.write("הקלד מוצא ויעד לחישוב זמנים, השכרת רכב וסריקה מלאה של כל משחקי הכדורגל לאורך כל תקופת השהות!")
+# כותרת האתר במראה רשמי
+st.title("מערכת ניתוח מסלולים ואירועי ספורט בינלאומיים")
+st.write("הזן נקודת מוצא ויעד לקבלת זמני נסיעה, תדירות טיסות וסריקת משחקי כדורגל מקומיים ואירופיים.")
 
-# משיכת המפתח הסודי מהגדרות השרת
+# mשיכת המפתח הסודי מהגדרות השרת
 api_key = st.secrets["GEMINI_API_KEY"]
 client = genai.Client(api_key=api_key)
 geolocator = Nominatim(user_agent="my_comprehensive_travel_itinerary_2026", timeout=10)
 
 @st.cache_data
 def analyze_comprehensive_travel(input_a, input_b, start_date, end_date, max_price):
-    """פנייה מאוחדת ל-AI לסריקה מקיפה של כל המשחקים באזור לאורך כל ימי השהות המבוקשים"""
+    """פנייה מאוחדת ל-AI לסריקת כל המשחקים, כולל ליגות מקומיות ומפעלים אירופיים"""
     prompt = f"""
-    Analyze a trip from '{input_a}' to '{input_b}'. Based on current live data for 2026, provide the following details:
+    Analyze a trip from '{input_a}' to '{input_b}' for the year 2026. Provide the following details:
     1. Clean HEBREW names for both locations.
     2. Official English names for both locations (for mapping).
     3. The closest major international airport for each location, formatted EXACTLY like this: 'Official English Name (Hebrew Translation in Parentheses)'.
     4. Estimated driving time from each location to its respective airport.
     5. Estimated direct flight time between these airports.
-    6. A sample list of standard flight schedules/options (frequencies, airlines) for direct flights explained in HEBREW.
+    6. A sample list of standard flight schedules/options (frequencies, airlines) explained in HEBREW.
     7. A list of major car rental agencies located directly at or near Airport B.
-    8. A COMPREHENSIVE and exhaustive list of ALL major football matches or sports events scheduled within a 100km radius of the destination area (Target B) during the entire duration from {start_date} to {end_date}, where ticket prices start BELOW {max_price} USD. Include as many matches as possible for these dates.
-       For each match, provide: the date of the match, the club/match name in Hebrew, the stadium name in Hebrew, the approximate minimum ticket price in USD, specific approximate latitude and longitude, and a REAL valid public ticketing search URL (e.g., StubHub, Ticketmaster, or Viagogo search link for that match).
+    8. A COMPREHENSIVE and exhaustive list of ALL major football matches (including local leagues AND European tournaments like UEFA Champions League, Europa League, Conference League) scheduled within a 100km radius of the destination area (Target B) strictly between the dates {start_date} and {end_date}, where ticket prices start BELOW {max_price} USD.
+       For each match, provide: the date of the match, the club/match name in Hebrew (including tournament type if European), the stadium name in Hebrew, the approximate minimum ticket price in USD, specific approximate latitude and longitude, and a REAL valid public ticketing search URL.
     9. Alternative routes explained in Hebrew.
     10. Public Unsplash image URLs for both locations.
 
@@ -79,7 +110,7 @@ def analyze_comprehensive_travel(input_a, input_b, start_date, end_date, max_pri
         ],
         "car_rentals_target_b": ["Avis", "Hertz"],
         "football_matches_hebrew": [
-            {{"date": "2026-08-15", "club_or_match": "ברצלונה נגד ריאל מדריד", "stadium": "קאמפ נואו", "price": 120, "lat": 41.3809, "lon": 2.1228, "ticket_url": "https://stubhub.com"}}
+            {{"date": "2026-08-15", "club_or_match": "צ'לסי נגד ריאל מדריד (ליגת האלופות)", "stadium": "סטמפורד ברידג'", "price": 140, "lat": 51.4816, "lon": -0.1910, "ticket_url": "https://stubhub.com"}}
         ],
         "img_a": "URL",
         "img_b": "URL",
@@ -101,20 +132,21 @@ with col_input2:
 # פיצול התאריכים לשתי תיבות נפרדות ומד תקציב
 col_start, col_end, col_price = st.columns(3)
 with col_start:
-    st.subheader("📅 תאריך יציאה לדרך:")
-    תאריך_יציאה_קלט = st.date_input("בחר תאריך טיסה הלוך:", datetime.now())
+    st.subheader("📅 תאריך יציאה:")
+    תאריך_יציאה_קלט = st.date_input("תאריך טיסה הלוך:", datetime.now())
 with col_end:
     st.subheader("📅 תאריך חזרה:")
-    תאריך_חזרה_קלט = st.date_input("בחר תאריך טיסה חזור:", datetime.now() + timedelta(days=7))
+    תאריך_חזרה_קלט = st.date_input("תאריך טיסה חזור:", datetime.now() + timedelta(days=7))
 with col_price:
     st.subheader("💰 תקציב מקסימלי לכרטיס:")
-    מחיר_מקסימום = st.slider("בחר מחיר מקסימלי (בדולר $):", min_value=20, max_value=500, value=150, step=10)
+    מחיר_מקסימום = st.slider("בחר מחיר מקסימלי (USD $):", min_value=20, max_value=500, value=150, step=10)
 
-if st.button("חשב מסלול וחפש כרטיסים") or (קלט_א and קלט_ב):
+if st.button("בצע ניתוח מסלול") or (קלט_א and קלט_ב):
     תאריך_התחלה = תאריך_יציאה_קלט.strftime('%Y-%m-%d')
     תאריך_סיום = תאריך_חזרה_קלט.strftime('%Y-%m-%d')
 
-    with st.spinner("🤖 ה-AI סורק את כל לוחות המשחקים לימי השהות שלכם..."):
+    # הודעת טעינה קצרה ומקצועית בלבד כפי שביקשת
+    with st.spinner("מחפש..."):
         try:
             # 1. שליפת נתונים מה-AI
             data = analyze_comprehensive_travel(קלט_א, קלט_ב, תאריך_התחלה, תאריך_סיום, מחיר_מקסימום)
@@ -124,14 +156,14 @@ if st.button("חשב מסלול וחפש כרטיסים") or (קלט_א and קל
             with col1:
                 st.subheader(f"📸 {data['name_a_hebrew']}")
                 st.image(data["img_a"], use_container_width=True)
-                st.caption(f"🏛️ שדה תעופה: {data['airport_a']}")
+                st.caption(f"שדה תעופה: {data['airport_a']}")
             with col2:
                 st.subheader(f"📸 {data['name_b_hebrew']}")
                 st.image(data["img_b"], use_container_width=True)
-                st.caption(f"🏛️ שדה תעופה: {data['airport_b']}")
+                st.caption(f"שדה תעופה: {data['airport_b']}")
 
-            # 3. הצגת לוח זמנים מפורט בטבלה מעוצבת
-            st.subheader("⏱️ לוח זמנים משוער למסלול המרכזי (טיסה ישירה):")
+            # 3. הצגת לוח זמנים מפורט בטבלה מעוצבת מימין לשמאל
+            st.subheader("⏱️ לוח זמנים משוער למסלול (טיסה ישירה):")
             timeline_data = {
                 "שלב במסלול": [
                     f"🚗 נסיעה מ-{data['name_a_hebrew']} אל {data['airport_a']}",
@@ -147,50 +179,47 @@ if st.button("חשב מסלול וחפש כרטיסים") or (קלט_א and קל
             st.table(pd.DataFrame(timeline_data))
 
             # 4. לוח זמני טיסות קיימות
-            st.subheader("📅 לוח טיסות קיימות/תדירות:")
+            st.subheader("📅 תדירות טיסות קיימות:")
             for flight in data.get("flight_schedules_hebrew", []):
                 st.write(f"• **{flight['airline']}**: {flight['schedule']}")
 
             # 5. מקומות להשכרת רכב
             st.subheader(f"🚗 סוכנויות השכרת רכב בשדה התעופה {data['airport_b']}:")
             car_list = ", ".join(data.get("car_rentals_target_b", []))
-            st.write(f"סוכנויות זמינות: **{car_list}**")
+            st.write(f"סוכנויות זמינות בטרמינל: **{car_list}**")
 
-            # 6. רשימת משחקים מלאה ומורחבת לכל ימי השהות
-            st.subheader(f"⚽ כל המשחקים באזור בין ה-{תאריך_התחלה} ל-{תאריך_סיום} (עד ${מחיר_מקסימום}):")
+            # 6. רשימת משחקים מלאה כולל ליגות אירופיות בטבלה מימין לשמאל
+            st.subheader(f"⚽ אירועי ספורט ומפעלים אירופיים באזור (עד ${מחיר_מקסימום}):")
             matches = data.get("football_matches_hebrew", [])
             filtered_matches = [m for m in matches if m.get("price", 0) <= מחיר_מקסימום]
             
             if filtered_matches:
-                # הצגת המשחקים בפורמט טבלה נקייה הכוללת את תאריך המשחק
                 matches_df_list = []
                 for m in filtered_matches:
                     matches_df_list.append({
                         "תאריך": m.get("date", "לא צוין"),
-                        "משחק / אירוע": m["club_or_match"],
+                        "משחק / מפעל אירופי": m["club_or_match"],
                         "אצטדיון": m["stadium"],
                         "מחיר התחלתי": f"${m['price']}"
                     })
+                # הצגת הטבלה בכיווניות ימין לשמאל
                 st.table(pd.DataFrame(matches_df_list))
 
-                # הצגת כפתורי רכישה נוחים מתחת לטבלה
-                st.write("🎟️ **קישורים ישירים לבדיקת זמינות ורכישת כרטיסים:**")
+                # הצגת קישורי רכישה
+                st.write("🎟️ **ערוצי רכישת כרטיסים רשמיים:**")
                 for m in filtered_matches:
-                    st.markdown(f"• לכרטיסים עבור **{m['club_or_match']}** ({m.get('date', '')}) — [לחץ כאן לרכישה]({m['ticket_url']})")
+                    st.markdown(f"• **{m['club_or_match']}** ({m.get('date', '')}) — [לחץ למעבר לאתר הרכישה]({m['ticket_url']})")
                 
                 # מפת אצטדיונים
-                st.write("🗺️ מיקומי האצטדיונים הפעילים ביעד לאורך השהות שלכם:")
+                st.write("🗺️ מיקומי האצטדיונים באזור היעד:")
                 st.map(pd.DataFrame({
                     'latitude': [m["lat"] for m in filtered_matches],
                     'longitude': [m["lon"] for m in filtered_matches]
                 }))
             else:
-                st.info(f"לא נמצאו משחקי ספורט שתואמים את התאריכים או את מסגרת התקציב שלכם.")
+                st.info(f"לא נמצאו משחקים או מפעלים אירופיים בטווח המחירים והתאריכים המבוקשים.")
 
             # 7. הצגת מסלולים חלופיים
-            st.subheader("🔄 מסלולים חלופיים שהתגלו:")
+            st.subheader("🔄 חלופות מסלול מוצעות:")
             for alt in data["alternatives"]:
-                st.write(f"• **{alt['type']}**: {alt['details']} — ⏳ זמן כולל: {alt['duration']}")
-                
-        except Exception as e:
-            st.error(f"שגיאה בקבלת נתונים מה-AI: {e}")
+
